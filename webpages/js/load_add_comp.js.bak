@@ -1,0 +1,395 @@
+$(document).ready(function(){
+	window.location = 'skp:spacelist@' + 1;
+	
+	$('#btn-carcass').on('click', function(){
+		main = $('#main-space').val();
+		sub = $('#sub-space').val();
+		val = main + "," + sub
+		window.location = 'skp:select-carcass@' + val;
+	})
+
+	$('#btn-shut').on('click', function(){
+		var newarr = [];
+		newarr.push($('#main-space').val())
+		newarr.push($('#sub-space').val())
+		newarr.push($('#carcass_code').val())
+		window.location = 'skp:show_shutter@'+ newarr;
+	});
+
+	$('#btn-int').on('click', function(){
+		var getc = $('#carcass_code').val();
+		getc = getc.split("_")
+		window.location = 'skp:show_int_html@'+ getc[1];
+	});
+
+	$('#rotatebtn').on('click', function(){
+		window.location = 'skp:rotate-comp@'+1;
+	})
+
+	$('#rotatebt').on('click', function(){
+		window.location = 'skp:rotate-comp@'+1;
+	})
+
+	$('#auto-place').on('click', function(){
+		if ($('#auto-place').is(':checked') == true){
+			var chkval = $('#sub-space').val();
+			if (chkval != undefined){
+				if (chkval.includes("Bifolding") == true){
+					$('#auto_front').css('display', 'block');
+				}else{
+					$('#auto_front').css('display', 'none');
+				}
+			}
+			$('#page-info').css('background', 'darkslategray');
+			$('#showauto').css('display', 'block');
+			$('#showbtns').css('display', 'none');
+			$('#showadd').css('display', 'block');
+
+			if ($('#load_carcass').val() == 1){
+				$('#placecomp').removeClass('disabled');
+				$('#rotatebt').removeClass('disabled');
+			}else{
+				$('#placecomp').addClass('disabled');
+				$('#rotatebt').addClass('disabled');
+			}
+
+			$('input[name=autoposition]').each(function(){
+				if ($(this).val() == 'bottom_right') $(this).prop('checked', true);
+			})
+		}else if ($('#auto-place').is(':checked') == false){
+			$('#page-info').css('background', '#2e2e2e');
+			$('#showauto').css('display', 'none');
+			$('#showbtns').css('display', 'block');
+			$('#showadd').css('display', 'none');
+
+			if ($('#load_carcass').val() == 1){
+				$('#expcomp').removeClass('disabled');
+				$('#rotatebtn').removeClass('disabled');
+			}
+
+			$('input[name=autoposition]').each(function(){
+				$(this).prop('checked', false);
+			});
+		}
+		$('#placeimg').html('<img src="D:/Decorpot_Extension/version_2/Installation_code/webpages/images/noimg.png" width="155" height="115">')
+	})
+
+	$('input[name=autoposition]').click(function(){
+		window.location = 'skp:placejpg@' + this.value;
+	})
+});
+
+function passAutoOff(){
+	$('#auto-place').prop('checked', false);
+	$('#page-info').css('background', '#2e2e2e');
+	$('#showauto').css('display', 'none');
+	$('#showbtns').css('display', 'block');
+	$('#showadd').css('display', 'none');
+	$('input[name=autoposition]').each(function(){
+		$(this).prop('checked', false);
+	});
+	$('#add_wall').val(1);
+	$('#showbtns').css('display', 'none');
+	$('#showadd').css('display', 'block');
+}
+
+function changeSpace(input){
+	$('#space_list').val(input);
+}
+
+function turnOnAuto(inp){
+	$('#auto-place').prop('checked', true);
+	$('#page-info').css('background', 'darkslategray');
+	$('#showauto').css('display', 'block');
+	$('#showbtns').css('display', 'none');
+	$('#showadd').css('display', 'block');
+	$('input[name=autoposition]').each(function(){
+		if ($(this).val() == 'bottom_right') $(this).prop('checked', true);
+	});
+
+	if (inp == 1){
+		$('#auto_front').css('display', 'block');
+	}else{$('#auto_front').css('display', 'none');}
+	$('#placeimg').html('<img src="D:/Decorpot_Extension/version_2/Installation_code/webpages/images/noimg.png" width="155" height="115">')
+}
+
+function passJpgImg(path){
+	// alert(path)
+	$('#placeimg').html('<img src="'+path+'" width="155" height="115">')
+}
+
+function passSpaceName(val, type){
+	$('#load_space_list').html('<div class="ui form"><div class="field"><div class="ui labeled input"><div class="ui label">Space Name:</div>'+val+'</div></div></div>')
+	if (type == 1){changeSpaceList(type)}
+}
+
+function changeSpaceList(val){
+	if (val != "" && val != 0){
+		if (val == 1){
+			val = $('#space_list').val();
+		}
+		window.location = 'skp:getspace@' + val;
+	}
+	$('#load_subcat').html('');
+	$('#btn-carcass').css('display', 'none');
+	$('#btn-shut').css('display', 'none');
+	$('#btn-int').css('display', 'none');
+	$('#load_comp_detail').css("display", "none");
+	$('#load_carcass').val(0);
+	$('#expcomp').addClass("disabled");
+	$('#rotatebtn').addClass("disabled");	
+}
+
+function passSpace(val, type){
+	if (val != ""){
+		$('#load_maincat').html('<div class="ui form"><div class="field"><div class="ui labeled input"><div class="ui label">Main Category:</div>'+val+'</div></div></div>')
+	}
+	if (type == 1){changeSpaceCategory()}
+}
+
+function changeSpaceCategory(){
+	$('#load_subcat').html('');
+	$('#btn-carcass').css('display', 'none');
+	$('#btn-shut').css('display', 'none');
+	$('#btn-int').css('display', 'none');
+	$('#expcomp').addClass("disabled");
+	$('#rotatebtn').addClass("disabled");
+	$('#placecomp').addClass("disabled");	
+	$('#load_comp_detail').css("display", "none");
+	$('#load_carcass').val(0);
+	var val = $('#main-space').val();
+	if (val != 0) {
+		window.location = 'skp:get_cat@' + val;
+	}
+}
+
+function passsubCat(input, type){
+	$('#load_subcat').html('');
+	$('#load_carcass').html('');
+	$('#internal_code').val('')
+	if (input != ""){
+		$('#load_subcat').html('<div class="ui form"><div class="field"><div class="ui labeled input"><div class="ui label">Sub Category:</div>'+input+'</div></div></div>')
+	}
+	if (type == 1){changesubSpace(type)}
+}
+
+function changesubSpace(type){
+	$('#btn-shut').css('display', 'none');
+	$('#btn-int').css('display', 'none');
+	$('#load_comp_detail').css("display", "none");
+	$('#load_carcass').val(0);
+	$('#expcomp').addClass("disabled");
+	$('#placecomp').addClass("disabled");	
+	$('#rotatebtn').addClass("disabled");
+	if (type == 1){
+		if ($('#page_type').val() == 0){
+			ms = $('#main-space').val();
+			ss = $('#sub-space').val();
+			vcal = ms + "," + ss
+			window.location = 'skp:check_car@' + vcal;
+		}else{window.location = 'skp:update_car@' + 1;}
+	}else{
+		$('#btn-carcass').css('display', 'none');
+		$('#loadfitch').css('display', 'block');
+		ms = $('#main-space').val();
+		ss = $('#sub-space').val();
+		vcal = ms + "," + ss
+		setTimeout(function() {window.location = 'skp:check_car@'+ vcal;}, 1000);
+		// window.location = 'skp:check_car@' + vcal;
+	}
+	var chksub = $('#sub-space').val();
+	// if (chksub.includes("Bifolding") == true){
+	// 	$('#auto_front').css('display', 'block');
+	// 	$('input[name=autoposition]').each(function(){
+	// 		$(this).prop('checked', false);
+	// 	})
+	// }else{
+	// 	$('#auto_front').css('display', 'none');
+	// }
+}
+
+function showCarBtn(val){
+	$('#loadfitch').css('display', 'none');
+	if (val == 0){
+		$('#btn-carcass').css('display', 'none');
+		toastr.info('Carcasses are not found!', 'Info')
+	}else{
+		$('#btn-carcass').css('display', 'block');
+	}
+}
+
+function passCarVal(inp){
+	$('#carcass_code').val(inp)
+	m = $('#main-space').val();
+	s = $('#sub-space').val();
+	cname = s+"_"+inp
+	$('#car-code').html('<div class="four wide column">Carcass Code</div><div class="twelve wide column"><span style="color: white !important;word-break: break-word;">'+cname+'</span></div>')
+	val = m + "," + s + "," + inp
+	window.location = 'skp:load-datas@'+ val;
+}
+
+function passDataVal(val, type){
+	var nhash = {};
+	for (var i = 0; i < val[1].length; i++){
+		// alert(val[1][i])
+		var splitval = val[1][i].split("|")
+		nhash[splitval[0]] = splitval[1]
+	}
+	$origin = nhash['shut_org']
+	$('#load_comp_detail').css("display", "block");
+	
+	if (val[0].length != undefined){
+		$('#btn-int').css("display", "block");
+	}else{
+		$('#btn-int').css("display", "none");
+	}
+	if (type == 0){$('#internal-cat').html('');}
+	if (type == 1){	$('#btn-carcass').css('display', 'block');}
+	
+	if (nhash['type'] != ""){
+		load_door = '<div class="four wide column">Door Type</div><div class="twelve wide column"><input type="hidden" id="door_type" value="'+nhash['type']+'"><span style="color: white !important;">'+nhash['type']+'</span></div>'
+	}
+	$('#door-type').html(load_door)
+
+	if (nhash['shutter_code'].includes("/") == true){
+		$('#shut_code').val('');
+		load_shutcode = ''
+		$('#btn-shut').css("display", "block");
+	}else{
+		if (type == 1 && (nhash['shutter_code'].includes("AF") == true || nhash['shutter_code'].includes("PF") == true)){
+		$('#btn-shut').css("display", "block");	
+		}else{$('#btn-shut').css("display", "none");}		
+		if (nhash['shutter_code'] != 'No'){
+			$('#shut_code').val(nhash['shutter_code']);
+			load_shutcode = '<div class="four wide column">Shutter Code</div><div class="twelve wide column"><span style="color: white !important;">'+nhash['shutter_code']+'</span></div>'
+		}else{
+			$('#shut_code').val(nhash['shutter_code']);
+		}
+	}
+	$('#shutter-code').html(load_shutcode)
+
+	if (nhash['solid'] == "Yes" & nhash['glass'] == "No"){
+		shut_type = '<div class="four wide column">Shutter Type</div><input type="hidden" value="solid" id="shttype"><div class="twelve wide column"><span style="color:white !important;">Solid</span></div>'
+	}else if (nhash['solid'] == "No" & nhash['glass'] == "Yes"){
+		shut_type = '<div class="four wide column">Shutter Type</div><input type="hidden" value="glass" id="shttype"><div class="twelve wide column"><span style="color:white !important;">Glass</span></div>'
+	}
+	$('#shutter-type').html(shut_type)
+
+	$('#load_carcass').val(1);
+
+	if ($('#auto-place').is(':checked') == true){
+		if ($('#load_carcass').val() == 1){
+			$('#placecomp').removeClass('disabled');
+			$('#rotatebt').removeClass('disabled');
+		}else{
+			$('#placecomp').addClass('disabled');
+			$('#rotatebt').addClass('disabled');
+		}
+	}else if ($('#auto-place').is(':checked') == false){
+		if ($('#load_carcass').val() == 1){
+			$('#expcomp').removeClass('disabled');
+			$('#rotatebtn').removeClass('disabled');
+		}
+	}	
+
+	if ($('#add_wall').val() == 1){
+		$('#placecomp').removeClass('disabled');
+		$('#rotatebt').removeClass('disabled');
+	}
+
+	if (type == 1){
+		if ($('#main-space').val().includes("Sliding") || $('#main-space').val().includes("sliding")){
+			window.location = 'skp:load-internal@'+1;
+		}else{
+			window.location = 'skp:updateglobal@'+1;
+		}
+	}
+}
+
+function passIntJs(vals, cat, type){
+	var valstr = "";
+	for (var k = 0; k < vals.length; k++){
+		var spval = vals[k].split("|")
+		var hname = spval[0].capitalize();
+		if (spval[1] != "no"){
+			valstr += '<div class="row"><div class="four wide column">'+hname+':</div><div class="twelve wide column" style="color: white;">'+spval[1]+'</div></div>'
+		}
+	}
+	var load_int = '<div class="ui grid">'+valstr+'</div>'
+	$('#internal_code').val(cat)
+	$('#internal-cat').html('<h5 class="ui dividing header">Internal Catgory</h5>'+load_int)
+	$('#showint').css("margin-top", "10px");
+
+	if (type == 2 && $('#page_type').val() == 1){
+		$('#uptcomp').removeClass("disabled");
+	}else{
+		$('#uptcomp').addClass("disabled");
+	}
+	window.location = 'skp:updateglobal@'+1;
+}
+
+String.prototype.capitalize = function() {
+  return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
+function passShutJs(v){
+	$('#shut_code').val(v[0]);
+	$('#shutter-code').html('<div class="four wide column">Shutter Code</div><div class="twelve wide column"><span style="color: white !important;">'+v[0]+'</span></div>')
+	if (v[1] == 1 && $('#page_type').val() == 1){
+		$('#uptcomp').removeClass("disabled");
+	}else{
+		$('#uptcomp').addClass("disabled");
+	}
+}
+
+function createcomp(val){
+	var json = {};
+
+	if ($('#shut_code').val() == "" && $('#shut_code').val() != "No"){
+		toastr.error('Please select a shutter to create!', 'Error');
+		return false
+	}
+
+	if ($('#auto-place').is(':checked') == true){
+		var position = $("input[name='autoposition']:checked").val();
+		if (position == undefined){
+			toastr.error("Auto position can't be blank!", 'Error');
+			return false;
+		}else{
+			json['auto_mode'] = 'true'
+			json['auto_position'] = position
+		}
+	}
+	
+	if (val == 0){json['edit'] = 0}else if(val == 1){json['edit'] = 1}
+	json['space-name'] = $('#space_list').val();
+	json['main-category'] = $('#main-space').val();
+	json['sub-category'] = $('#sub-space').val();
+	json['carcass-code'] = $('#carcass_code').val();
+	json['door-type'] = $('#door_type').val();
+	if ($('#shut_code').val() != "No"){
+		json['shutter-code'] = $('#shut_code').val();
+	}
+	json['shutter-type'] = $('#shttype').val();
+	json['shutter-origin'] = $origin
+
+	if ($('#main-space').val().includes("Sliding") || $('#main-space').val().includes("sliding")){
+		var intval = $('#internal_code').val();
+		if (intval == ""){
+			toastr.error('Please select a Internal category!', 'Error');
+			return false
+		}else{
+			json['internal-category'] = intval;
+		}
+	}
+
+	var str = JSON.stringify(json);
+	$('#loadicon').css('display', 'block');
+	if (val == 1){$('#uptcomp').addClass("disabled");}
+	window.location = 'skp:send_compval@'+ str;
+	// setTimeout(function() {window.location = 'skp:send_compval@'+ str;}, 500);
+}
+
+function sentcompVal(v){
+	$('#loadicon').css('display', 'none');
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="../js/load_add_attr.js"></script>
+	<style>
+		button {font-family: 'Poppins', sans-serif !important; font-weight: normal !important;}
+		.lamname {padding-top: 3px; padding-bottom: 3px; min-height: 40px; max-height: 53px;}
+		.ui.grid>.column:not(.row){padding-top: 8px;}
+	</style>
+</head>
+
+<body>
+	<div class="ui equal width form right-pad">
+		<div class="column">
+			<div class="ui form">
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Raw Material:<span class="mandatory"> *</span></div>
+						<div class="ui input"><input type="text" id="attr_raw_material" class="inp-ltr"></div>
+					</div>					
+				</div>
+
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Handles:<span class="mandatory"> *</span></div>
+						<div class="ui input"><input type="text" id="attr_handles_type" class="inp-ltr"></div>
+					</div>
+				</div>
+
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Soft Close:<span class="mandatory"> *</span></div>
+						<select class="ui dropdown" id="attr_soft_close">
+							<option value="0">Select...</option>
+							<option value="yes">Yes</option>
+							<option value="no">No</option>
+						</select>	
+					</div>
+				</div>
+
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Finish Type:<span class="mandatory"> *</span></div>
+						<select class="ui dropdown" id="attr_finish_type" onchange="changeFinish(this.value)">
+							<option value="0">Select...</option>
+							<option value="acrylic">Acrylic</option>
+							<option value="duco">Duco</option>
+							<option value="laminate">Lamination</option>
+							<option value="veneer">Veneer</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Product Code:<span class="mandatory"> *</span></div>
+						<div class="ui disabled input" onclick="readOly()"><input type="text" id="attr_product_code"></div>
+					</div>
+				</div>
+
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Product Name:<span class="mandatory"> *</span></div>
+						<div class="ui disabled input" onclick="readOly()"><input type="text" id="attr_product_name"></div>
+					</div>
+				</div>
+
+				<div class="field">
+					<div class="ui labeled input">
+						<div class="ui label">Shutter finish code:<span class="mandatory"> *</span></div>
+						<div class="ui input"><input type="text" id="attr_shutter_finish" class="inp-ltr"></div>
+					</div>
+				</div>
+
+				<div class="field" id="show_int" style="display: none;">
+					<div class="ui labeled input">
+						<div class="ui label">Internal finish code:<span class="mandatory">*</span></div>
+						<div class="ui input"><input type="text" id="attr_internal_finish"></div>
+					</div>
+				</div>
+
+				<input type="hidden" id="show_view" value="">
+				<div id="finish_head" style="display: none; margin-top: 1em;">
+					<h4 class="ui dividing header">Carcass finish codes <span class="mandatory"> *</span></h4>
+					<div class="ui equal width grid" style="margin-bottom: 0px;">
+						<div class="column" id="show_leftlam" style="display: none;border-right: 1px solid #424949;">
+							<div class="field">
+								<button class="fluid mini ui twitter button" id="btn_left_lam">Right</button>
+								<input type="hidden" id="left_mat_type" value="">
+								<input type="hidden" id="left_lam_value" value="">
+								<div style="text-align: -webkit-center;">
+									<div id="left_name" class="lamname"></div>
+									<div id="left_frame" style="width:100%; height:100px;margin-top: .5em;"></div>
+								</div>
+							</div>
+						</div>
+						<div class="column" id="show_rightlam" style="display: none;border-right: 1px solid #424949;">
+							<div class="field">
+								<button class="fluid mini ui twitter button" id="btn_right_lam">Left</button>
+								<input type="hidden" id="right_mat_type" value="">
+								<input type="hidden" id="right_lam_value" value="">
+								<div style="text-align: -webkit-center;">
+									<div id="right_name" class="lamname"></div>
+									<div id="right_frame" style="width:100%; height:100px;margin-top: .5em;"></div>
+								</div>
+							</div>
+						</div>
+						<div class="column" id="show_toplam" style="display: none;border-right: 1px solid #424949;">
+							<div class="field">
+								<button class="fluid mini ui twitter button" id="btn_top_lam">Top</button>
+								<input type="hidden" id="top_mat_type" value="">
+								<input type="hidden" id="top_lam_value" value="">
+								<div style="text-align: -webkit-center;">
+									<div id="top_name" class="lamname"></div>
+									<div id="top_frame" style="width:100%; height:100px;margin-top: .5em;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="field" style="margin-top: 2em;border-top: 1px solid #424949;display: none;" id="apply_all">
+						<div class="ui checkbox" style="padding-top: 8px;">
+							<input type="checkbox" id="applyall">
+							<label>Apply for all position</label>
+						</div>
+					</div>
+				</div>
+				
+				<div class="field" style="text-align: center;" id="uptbtn">
+					<button class="ui positive button" onclick="uptvalue()">Update</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		$('.ui.dropdown').dropdown();
+	</script>
+</body>
+</html>

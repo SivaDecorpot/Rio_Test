@@ -1,0 +1,333 @@
+require 'fileutils'
+require_relative 'comp_visible_test.rb'
+
+module Decor_Standards
+	def self.export_index(input)
+		$lamarr = []
+		@views = self.export_html(input['space'])
+		return @views
+	end
+
+	def self.get_attributes(view)
+		dict_name = 'carcase_spec'
+		call_image = WorkingDrawing::get_working_image(view)
+		newh = call_image
+		return {} if newh.empty?
+		mainh = {}
+		if view == 'top'
+			mainh['image'] = []
+			if call_image[1].is_a?(Array)
+				call_image.each{|arr|
+					mainh['image'] << arr[1]
+				}
+			else
+				mainh['image'] = [call_image[1]]
+			end
+		else
+			main_arr 	= []
+			comp_list 	= newh[0]
+			comp_list.each_pair{|name, comp| 
+				comp_hash	 	= {}	
+				comp_hash["id"] = name
+				comp_dicts = comp.attribute_dictionaries
+				if !comp_dicts.nil? && !comp_dicts[dict_name].nil?
+					comp_dicts[dict_name].each{|key, val|
+						comp_hash[key] = val
+					}
+				else
+					comp_hash["attr_product_name"] = comp.definition.get_attribute(dict_name, 'attr_product_name')
+					comp_hash["attr_product_code"] = comp.definition.get_attribute(dict_name, 'attr_product_code')
+				end
+				comp_hash['comp_width'] 	= DP::get_comp_width comp
+				comp_hash['section_plane']	= WorkingDrawing::get_section_list[comp]
+				main_arr.push(comp_hash)	
+			}
+			mainh["attributes"] = main_arr
+			mainh["image"] = newh[1]
+		end
+		return mainh
+	end
+
+	def self.get_attribute_data(val)
+		@dict_name = 'carcase_spec'
+		mainh = {}
+		main_arr 	= []
+		val.each_pair{|name, comp| 
+			comp_hash	= {}	
+			comp_hash['id'] = name
+			comp_dicts = comp.attribute_dictionaries
+			if !comp_dicts.nil? && !comp_dicts[@dict_name].nil?
+				comp_dicts[@dict_name].each{|key, val|
+					if key.include?("lam_value")
+						if !$lamarr.include?(val)
+							$lamarr.push(val)
+						end
+					end
+					puts ""
+					comp_hash[key] = val
+				}
+			end
+			comp_hash['attr_product_name'] = comp.definition.get_attribute(@dict_name, 'attr_product_name')
+			if comp_hash['attr_product_name'].nil?
+				comp_hash['attr_product_name'] = comp.get_attribute(@dict_name, 'attr_product_name')
+			end
+			comp_hash['attr_product_code'] = comp.definition.get_attribute(@dict_name, 'attr_product_code')
+			if comp_hash['attr_product_code'].nil?
+				comp_hash['attr_product_code'] = comp.get_attribute(@dict_name, 'attr_product_code')
+			end
+			comp_hash['comp_width'] 	= DP::get_comp_width comp
+			comp_hash['section_plane']	= WorkingDrawing::get_section_list[comp]
+			# puts comp_hash
+			main_arr.push(comp_hash)	
+		}
+		mainh['attributes'] = main_arr
+		return mainh
+	end
+
+	def self.export_html(input)
+		cname = Sketchup.active_model.get_attribute(:rio_global, 'client_name')
+		cid = Sketchup.active_model.get_attribute(:rio_global, 'client_id')
+		pname = Sketchup.active_model.get_attribute(:rio_global, 'project_name')
+
+html = '<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1">
+				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+				<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+				<style>
+					body {font-size: 12px;}
+					.procode {font-weight:bold;}
+					.vname {padding: 5px 17px 5px 10px; font-weight: bold;text-align: center; text-decoration: underline;}
+					.table-bordered > thead > tr > th {border:1px solid black !important;}
+					.table-bordered > tbody > tr > td {border:1px solid black !important;}
+					.pagebreak { page-break-before: always; }
+					.btm-border {border-bottom: 1px solid black; padding: 10px 5px 10px 5px;}
+					.clinote {color: red !important; padding: 5px 0px 0px 0px; font-weight: bold;}
+					.page-break {page-break-before:always !important;}
+					.chead {color:#d60000 !important;font-weight:normal;}
+					.imgB1 {left: 1%; text-align:center;width: 100%; padding-top: 8px;}
+					.imgB1 img {border:1px solid black;width: 180px; height: 130px;}
+					.mimg {position: relative;}
+					.lamheader {border-bottom:1px solid black; padding: inherit; font-size: medium; font-weight: 600; color: brown !important;}
+				</style>
+			</head>
+
+			<body>
+				<div class="container-fluid">'
+
+					input.each {|inp|
+						res = scan_room_components inp, true
+						#puts "response : #{res}"
+						if res[1] == false
+							return false
+						end
+						
+						get_drawing = MRP::get_working_drawing_sides inp
+
+						views = get_drawing.keys
+						views.delete('top_view')
+
+						params = get_drawing['top_view']
+						html 	+=		'<section style="border-style: double;">
+									<div style="padding: 5px;">
+										<table class="table table-bordered" style="font-size: 12px;">
+											<tbody>
+												<tr>
+													<td width="20%"  style="padding: 0px;">
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Client Name: </b>'+cname+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Client ID: </b>'+cid+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Project Name: </b>'+pname+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Room Name: </b>'+inp+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Date: </b>'+Time.now.strftime('%b %Y, %d')+'</div>
+														</div>
+														<div class="col-lg-12" style="padding: 0px 0px 0px 5px;">
+															<div class="clinote">Color Codes:</div>
+															<div>Dimension: <span style="color:red !important; vertical-align:super;">______</span></div>
+															<div>Layout Dimension: <span style="color:#1D8C2C !important; vertical-align:super;">______</span></div>
+															<div>Component ID: <span style="color:#7A003D !important; vertical-align:super;">______</span></div>
+														</div>
+														<div class="col-lg-12" style="padding: 0px; border-top:1px solid black;">
+															<div class="imgB1"><div style="color:red !important;">Rendered Image</div><img src="'+params[1]+'" width="180" height="120" style="border:1px solid black;"></div>
+														</div>
+													</td>
+													<td width="80%" style="padding: 1px;">
+														<div style="text-align:center;"><h4>'+inp+' Floor Plan</h4>
+															<div class="pull-right" style="position: relative; left: 0; top: 0;">
+																<img src="'+params[0]+'" width="820" height="620">
+															</div>
+														</div>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</section>
+								<div class="page-break"></div>'
+
+
+						views.each{|view_name|
+							params = get_drawing[view_name]
+
+html +=		'<section style="border-style: double;">
+									<div style="padding: 5px;">	
+										<table class="table table-bordered" style="font-size: 11px;">
+											<tbody>
+												<tr>
+													<td width="20%" style="padding: 0px;">
+														<div class="col-lg-12">
+															<div class="vname">Elevation:&nbsp;'+view_name.capitalize+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Client Name: </b>'+cname+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Client ID: </b>'+cid+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Project Name: </b>'+pname+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Room Name: </b>'+inp+'</div>
+														</div>
+														<div class="col-lg-12 btm-border">
+															<div class="cliname"><b>Date: </b>'+Time.now.strftime('%b %Y, %d')+'</div>
+														</div>
+														<div class="col-lg-12" style="padding: 0px 0px 0px 5px;">
+															<div class="clinote">Color Codes:</div>
+															<div>Dimension: <span style="color:red !important; vertical-align:super;">______</span></div>
+															<div>Layout Dimension: <span style="color:#1D8C2C !important; vertical-align:super;">______</span></div>
+															<div>Component ID: <span style="color:#7A003D !important; vertical-align:super;">______</span></div>
+														</div>
+														<div class="col-lg-12" style="padding: 0px; border-top:1px solid black;">
+															<div class="imgB1"><div style="color:red !important;">Rendered Image</div><img src="'+params[2]+'" width="180" height="120" style="border:1px solid black;"></div>
+														</div>
+													</td>
+													<td width="80%" style="padding: 1px;">
+														<div class="pull-right" style="position: relative; left: 0; top: 0;">
+															<img src="'+params[1]+'">
+														</div>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+										<div class="row">
+											<div class="col-lg-12" style="margin-bottom: -20px;">
+												<table class="table table-bordered" style="font-size: 11px;">
+													<thead>
+														<tr>
+															<th class="chead">ID</th>
+															<th class="chead">Product Code</th>
+															<th class="chead">Product Name</th>
+															<th class="chead">Width</th>
+															<th class="chead">Raw Material</th>
+															<th class="chead">Shutter Finish</th>
+															<th class="chead">Top Laminate</th>
+															<th class="chead">Right Laminate</th>
+															<th class="chead">Left Laminate</th>
+															<th class="chead">Handles</th>
+															<th class="chead">Soft Close</th>
+															<th class="chead">Finish Type</th>
+														</tr>
+													</thead>
+
+													<tbody>'
+														getattr = self.get_attribute_data(params[0])
+														getattr['attributes'].each{|att|
+															pro_code = att['attr_product_code'].nil? ? 'N/A' : att['attr_product_code']
+															pro_name = att['attr_product_name'].nil? ? 'N/A' : att['attr_product_name']
+															rawmat = att['attr_raw_material'].nil? ? 'N/A' : att['attr_raw_material'].capitalize
+															front = att['front_lam_value'].nil? ? 'N/A' : att['front_lam_value']
+															if front != "N/A" and !front.nil?
+																lamfront1 = front.split('/')[-1]
+																lamfront = lamfront1.gsub(".jpg", "").gsub(".JPG", "")
+															else
+																lamfront = front
+															end
+															lamtop = att['top_lam_value'].nil? ? 'N/A' : att['top_lam_value'].split('/')[-1]
+															lamleft = att['left_lam_value'].nil? ? 'N/A' : att['left_lam_value'].split('/')[-1]
+															lamright = att['right_lam_value'].nil? ? 'N/A' : att['right_lam_value'].split('/')[-1]
+															handtype = att['attr_handles_type'].nil? ? 'N/A' : att['attr_handles_type'].capitalize
+															softclose = att['attr_soft_close'].nil? ? 'N/A' : att['attr_soft_close'].capitalize
+															fintype = att['attr_finish_type'].nil? ? 'N/A' : att['attr_finish_type'].capitalize
+															
+
+html +=								'<tr>
+															<td><div class="procode">'+att['id']+'</div></td>
+															<td><div class="procode">'+pro_code+'</div></td>
+															<td><div class="procode">'+pro_name+'</div></td>
+															<td>'+att['comp_width'].to_s+'</td>
+															<td>'+rawmat+'</td>
+															<td>'+lamfront+'</td>
+															<td>'+lamtop.gsub(".jpg", "").gsub(".JPG", "")+'</td>
+															<td>'+lamleft.gsub(".jpg", "").gsub(".JPG", "")+'</td>
+															<td>'+lamright.gsub(".jpg", "").gsub(".JPG", "")+'</td>
+															<td>'+handtype+'</td>
+															<td>'+softclose+'</td>
+															<td>'+fintype+'</td>
+														</tr>'
+														}
+html +=							'</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</section>
+								<div class="page-break"></div>'
+							
+						}
+					}
+					if $lamarr.length != 0
+html +='<section style="border-style: double;">
+							<div style="padding: 5px;">	
+								<div class="col-lg-12 lamheader">Used Laminates</div>
+								<table style="font-size: 11px;">
+									<tbody>
+										<tr>'
+											$lamarr.each {|img|
+												if !img.nil?
+													gname = img.split('/')[-1]
+													lam_name = gname.gsub(".jpg", "").gsub(".JPG", "")
+													if img.include?("#")
+	html +=							'<td style="text-align:center;padding:10px;"><div style="padding-bottom:5px;">'+lam_name+'</div><div style="background:'+img+'; width:80px;height:120px;"></div></td>'
+													else
+	html +=							'<td style="text-align:center;padding:10px;"><div style="padding-bottom:5px;">'+lam_name+'</div><img src="'+RIO_ROOT_PATH+'/materials/'+img+'" width="80" height="120"></td>'
+													end	
+												end
+											}
+html +=  			'</tr>
+									</tbody>
+								</table>
+							<div>
+						</section>'
+					end
+html+='</div>
+			</body>
+		</html>'
+
+		if Sketchup.active_model.title != ""
+			@title = Sketchup.active_model.title
+		else
+			@title = "Untitled"
+		end
+		@datetitle = Time.now.strftime('%d-%m_%H-%M')
+		FileUtils.mkdir_p RIO_ROOT_PATH+"/reports/WorkingDrawing/"
+		@outpath = RIO_ROOT_PATH+"/reports/WorkingDrawing/#{@title}_#{@datetitle}.html"
+		File.write(@outpath, html)
+
+		WorkingDrawing::reset_component_count
+		return @outpath
+	end
+end

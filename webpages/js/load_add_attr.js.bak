@@ -1,0 +1,223 @@
+$(document).ready(function(){
+	window.location = 'skp:loaddatas@' + 1;
+
+	$('#btn_left_lam').on('click', function(){
+		window.location = 'skp:laminate_view@' + 'left';
+	})
+	$('#btn_right_lam').on('click', function(){
+		window.location = 'skp:laminate_view@' + 'right';
+	})
+	$('#btn_top_lam').on('click', function(){
+		window.location = 'skp:laminate_view@' + 'top';
+	})
+
+	$('#applyall').on('click', function(){
+		if ($('#applyall').is(':checked') == true){
+			for (var k = 0; k < $lam.length; k++){
+				getval = $lam[k].replace("|", "")
+				if (getval != $apply){
+					$('#'+getval+'_name').text($('#'+$apply+'_name').text());
+					$('#'+getval+'_lam_value').val($('#'+$apply+'_lam_value').val());
+					$('#'+getval+'_mat_type').val($('#'+$apply+'_mat_type').val());
+					if ($('#'+$apply+'_mat_type').val() == 'color'){
+						$('#'+getval+'_frame').html('');
+						$('#'+getval+'_frame').css('background', $('#'+$apply+'_lam_value').val());
+						$('#'+getval+'_frame').width(80).height(120);
+					}else{
+						$('#'+getval+'_frame').html('<img src="'+$('#'+$apply+'_lam_value').val()+'"> ');
+						$('#'+getval+'_frame img').width(80).height(120);
+					}
+				}
+			}
+		}else{
+			for (var m = 0; m < $lam.length; m++){
+				appval = $lam[m].replace("|", "")
+				if (appval != $apply){
+					$('#'+appval+'_name').text('');
+					$('#'+appval+'_lam_value').val('');
+					$('#'+appval+'_mat_type').val('');
+					if ($('#'+$apply+'_mat_type').val() == 'color'){
+						$('#'+appval+'_frame').css('background', '');
+					}else{
+						$('#'+appval+'_frame').html('');
+					}
+				}
+			}
+		}
+	})
+
+});
+
+function readOly(){
+	toastr.info('This field is disabled!', 'Info')
+}
+
+$ids = []
+$lam = []
+$apply = []
+function passValToJs(val){
+	var showfin = 0;
+	for(var i = 0; i < val.length; i++){
+		spval = val[i].split("|")
+		$ids.push(spval[0])
+		if (spval[0].includes("left") == true){
+			$('#show_leftlam').css('display', 'block');
+			$('#show_view').val(1);
+			$('#left_lam_value').val(spval[1])
+			$lam.push('left|'+spval[1])
+		}else if (spval[0].includes("right") == true){
+			$('#show_rightlam').css('display', 'block');
+			$('#show_view').val(1);
+			$('#right_lam_value').val(spval[1])
+			$lam.push('right|'+spval[1])
+		}else if (spval[0].includes("top") == true){
+			$('#show_toplam').css('display', 'block');
+			$('#show_view').val(1);
+			$('#top_lam_value').val(spval[1])
+			$lam.push('top|'+spval[1])
+		}else{$('#show_view').val(0);}
+		
+		if ((spval[0] == "attr_soft_close" || spval[0] == "attr_finish_type") && spval[1] == ""){
+			$('#'+spval[0]).val(0);
+		}else{
+			$('#'+spval[0]).val(spval[1]);
+		}
+	}
+
+	if ($('#show_view').val() == 1 && $('#attr_finish_type').val() != 0){
+		$('#finish_head').css('display', 'block');
+	}else{
+		$('#finish_head').css('display', 'none');
+	}
+
+	if ($('#attr_product_name').val().includes("Sliding") || $('#attr_product_name').val().includes("sliding")){
+		$('#show_int').css('display', 'block');
+	}else{
+		$('#show_int').css('display', 'none');
+	}
+	updateLamVal($lam)
+}
+
+function updateLamVal(val){
+	for (var i = 0; i < val.length; i++){
+		var spval = val[i].split("|")
+		if (spval[1].includes("#") == true){
+			$('#'+spval[0]+'_frame').css('background', spval[1])
+			$('#'+spval[0]+'_frame').width(80).height(120);
+			$('#'+spval[0]+'_mat_type').val('color')
+			$('#'+spval[0]+'_name').html(spval[1])
+		}else{
+			$('#'+spval[0]+'_frame').html('<img src="'+spval[1]+'"> ');
+			$('#'+spval[0]+'_frame img').width(80).height(120);
+			$('#'+spval[0]+'_mat_type').val('material')
+
+			var last = spval[1].substring(spval[1].lastIndexOf("/") + 1, spval[1].length);
+			name = last.replace(/.jpg/g, "").replace(/.JPG/g, "");;
+			$('#'+spval[0]+'_name').html(name)
+		}
+	}
+	if ($('#apply_all').is(':hidden') == true){
+		$('#uptbtn').css('margin-top', '3em');
+	}
+}
+
+function changeFinish(val){
+	if (val != 0){
+		if ($('#show_view').val() == 1){
+			if ($('#apply_all').is(':hidden') == true){
+				$('#uptbtn').css('margin-top', '3em');
+			}
+			$('#finish_head').css('display', 'block');
+		}else{$('#finish_head').css('display', 'none');}
+	}else{
+		$('#finish_head').css('display', 'none');
+	}
+}
+
+String.prototype.capitalize = function() {
+  return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
+function uptvalue(){
+	ids = $ids
+	json = {}
+	// alert('uptvalkue'+ids)
+	for (var l = 0; l < ids.length; l++){
+		var vals = document.getElementById(ids[l]).value;
+		var res1 = ids[l].replace(/attr_/g, "");
+		var res = res1.replace(/_/g, " ");
+		var mname = res.capitalize();
+		if (ids[l] == "attr_soft_close" || ids[l] == "attr_finish_type"){
+			if (vals == 0){
+				toastr.error(mname+" can't be blank!", "Error")
+				return false;
+			}else{
+				json[ids[l]] = vals;
+			}
+		}else{
+			if (vals == ""){
+				var fval = '';
+				if (mname.includes("Right") == true){
+					fval = 'Left carcass finish code'
+				}else if (mname.includes("Left") == true){
+					fval = 'Right carcass finish code'
+				}else if (mname.includes("Top") == true){
+					fval = 'Top carcass finish code'
+				}else{
+					fval = mname
+				}
+				toastr.error(fval+" can't be blank!", "Error")
+				document.getElementById(ids[l]).focus();
+				return false;
+			}else{
+				json[ids[l]] = vals;
+			}
+		}
+	}
+	
+	if ($lam.length != 0){
+		jarr = []
+		for (var i = 0; i < $lam.length; i++){
+			lam = $lam[i].split("|")
+			json1 = {}
+			if (lam[0] == "left"){
+				var val = 'right'
+			}else if (lam[0] == "right"){
+				var val = 'left'
+			}else{var val = lam[0]}
+			json1['side'] = val
+			json1['image_path'] = $('#'+lam[0]+'_lam_value').val();
+			json1['lam_type'] = $('#'+lam[0]+'_mat_type').val();
+			jarr.push(json1)
+		}
+		json['laminate'] = jarr
+	}
+	var str = JSON.stringify(json);
+	$('#loadicon').css('display', 'block');
+	setTimeout(function() {window.location = 'skp:upd_attribute@'+ str;}, 500);
+}
+
+function passUpdateToJs(inp){
+	$('#loadicon').css('display', 'none');
+	toastr.success("Attributes are updated successfully!", "Success")
+}
+
+function passLaminateVal(val){
+	$('#apply_all').css('display', 'block');
+	if (val[2].includes("color")){
+		$('#'+val[0]+'_frame').html('');
+		$('#'+val[0]+'_frame').css('background', val[1]);
+		$('#'+val[0]+'_frame').width(80).height(120);
+	}else{
+		// alert(val[3])
+		$('#'+val[0]+'_frame').html('<img src="'+val[3]+'"> ');
+		$('#'+val[0]+'_frame img').width(80).height(120);
+	}
+	$apply.push(val[0])
+	$('#'+val[0]+'_name').html(val[1]);
+	$('#'+val[0]+'_mat_type').val(val[2])
+	$('#'+val[0]+'_lam_value').val(val[3])
+	if ($('#apply_all').is(':hidden') == false){
+		$('#uptbtn').css('margin-top', '0em');
+	}
+}
